@@ -4,9 +4,9 @@
 
 
 VulkanRenderer::VulkanRenderer():
-window(nullptr)
+    window(nullptr), instance(nullptr),
+    mainDevice(), graphicsQueue(nullptr)
 {
-    instance = VkInstance();
 }
 
 int32_t VulkanRenderer::Init(GLFWwindow* newWindow)
@@ -29,6 +29,12 @@ int32_t VulkanRenderer::Init(GLFWwindow* newWindow)
 
 void VulkanRenderer::CreateInstance()
 {
+    //Check if validation layers are supported by the GPU
+    if (!CheckValidationLayerSupport())
+    {
+        throw std::runtime_error("validation layers requested, but not available!");
+    }
+    
     //Information about the application itself
     //Most data here doesn't affect the program and is for developer convenience
 
@@ -42,18 +48,15 @@ void VulkanRenderer::CreateInstance()
 
     
 
-    //Create lit to hold instance extensions
-    std::vector<const char*> instanceExtensions;
 
     //Set up extension instance will use
     uint32_t glfwExtensionCount = 0; //GLFW may require multiple extension
     const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount); // Extensions passed as array of cstrings, so need pointer (the array) to pointer (the cstring)
 
+    //Create lit to hold instance extensions
     //Add GLFW extensions to list of extensions
-    for (size_t i = 0; i < glfwExtensionCount; i++)
-    {
-        instanceExtensions.push_back(glfwExtensions[i]);
-    }
+    std::vector<const char*> instanceExtensions(glfwExtensions,glfwExtensions+glfwExtensionCount);
+    instanceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 
     //Check instance extension supported...
     if(!CheckInstanceExtensionSupport(instanceExtensions))
@@ -67,9 +70,14 @@ void VulkanRenderer::CreateInstance()
     createInfo.pApplicationInfo = &appInfo;
     createInfo.enabledExtensionCount = static_cast<uint32_t>(instanceExtensions.size());
     createInfo.ppEnabledExtensionNames = instanceExtensions.data();
+
+    //Add the validation layers to the instance
+    VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo;
+    PopulateDebugMessengerCreateInfo(debugCreateInfo);
     
-    createInfo.enabledLayerCount  = 0;
-    createInfo.ppEnabledLayerNames = nullptr;
+    createInfo.enabledLayerCount  = static_cast<uint32_t>(validationLayers.size());
+    createInfo.ppEnabledLayerNames = validationLayers.data();
+    createInfo.pNext = static_cast<VkDebugUtilsMessengerCreateInfoEXT*>(&debugCreateInfo);
 
     //Create instance;
     const VkResult& result = vkCreateInstance(&createInfo,nullptr,&instance);
@@ -105,6 +113,14 @@ void VulkanRenderer::CreateLogicalDevice()
     deviceCreateInfo.enabledExtensionCount = 0; //Number of enabled logical device extensions
     deviceCreateInfo.ppEnabledExtensionNames = nullptr; //List of enabled logical device extensions
     deviceCreateInfo.pEnabledFeatures = &deviceFeatures; //Physical device features logical device will use
+
+    //Add validation layers to the logic device
+    VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo;
+    PopulateDebugMessengerCreateInfo(debugCreateInfo);
+
+    deviceCreateInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
+    deviceCreateInfo.ppEnabledLayerNames = validationLayers.data();
+    deviceCreateInfo.pNext = static_cast<VkDebugUtilsMessengerCreateInfoEXT*>(&debugCreateInfo);
 
     //Create the logical device for the given physical device
     VkResult result = vkCreateDevice(mainDevice.physicalDevice,&deviceCreateInfo,nullptr,&mainDevice.logicalDevice);
@@ -190,6 +206,44 @@ bool VulkanRenderer::CheckDeviceSuitable(const VkPhysicalDevice& device) const
     QueueFamilyIndices& indices = GetQueueFamilies(device);
   
     return indices.IsValid();
+}
+
+bool VulkanRenderer::CheckValidationLayerSupport() const
+{
+    uint32_t layerCount;
+    vkEnumerateInstanceLayerProperties(&layerCount,nullptr);
+
+    std::vector<VkLayerProperties> availableLayers(layerCount);
+    vkEnumerateInstanceLayerProperties(&layerCount,availableLayers.data());
+
+    for (const char* layerName : validationLayers)
+    {
+        bool layerFound = false;
+        for (const auto& layerProperties : availableLayers)
+        {
+            if(strcmp(layerName,layerProperties.layerName))
+            {
+                layerFound = true;
+                break;
+            }
+        }
+
+        if(!layerFound)
+        {
+            return false;
+        }
+    }
+    return true;
+    
+}
+
+void VulkanRenderer::PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo)
+{
+    createInfo = {};
+    createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+    createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+    createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+    createInfo.pfnUserCallback = DebugCallback;
 }
 
 QueueFamilyIndices& VulkanRenderer::GetQueueFamilies(const VkPhysicalDevice& device) const
