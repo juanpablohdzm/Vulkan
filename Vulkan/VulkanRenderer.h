@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <vector>
 
+
 struct QueueFamilyIndices;
 
 class VulkanRenderer
@@ -28,12 +29,15 @@ private:
         VkDevice logicalDevice;
     } mainDevice;
     VkQueue graphicsQueue;
+    VkQueue presentationQueue;
+    VkSurfaceKHR surface;
     
 
     //Vulkan functions
     //- Create functions
     void CreateInstance();
     void CreateLogicalDevice();
+    void CreateSurface();
 
     
     //- Get Functions
@@ -42,6 +46,7 @@ private:
     //-Support functions
     // -- Checker Functions
     bool CheckInstanceExtensionSupport(const std::vector<const char*>& checkExtensions)const;
+    bool CheckDeviceExtensionSupport(const VkPhysicalDevice& device) const;
     bool CheckDeviceSuitable(const VkPhysicalDevice& device) const;
     bool CheckValidationLayerSupport() const;
     void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
