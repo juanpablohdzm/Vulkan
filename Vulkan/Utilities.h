@@ -18,6 +18,13 @@ const std::vector<const char*> validationLayers ={
     "VK_LAYER_KHRONOS_validation"
 };
 
+struct SwapChainDetails
+{
+    VkSurfaceCapabilitiesKHR surfaceCapabilities; //Surface properties e.g. image size
+    std::vector<VkSurfaceFormatKHR> formats; //Surface image formats e.g. RGBA and size of each color
+    std::vector<VkPresentModeKHR> presentationModes; //How images should be presented to screen
+};
+
 static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
     VkDebugUtilsMessageTypeFlagsEXT messageType,

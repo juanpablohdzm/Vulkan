@@ -263,8 +263,14 @@ bool VulkanRenderer::CheckDeviceSuitable(const VkPhysicalDevice& device) const
 
     QueueFamilyIndices indices = GetQueueFamilies(device);
     bool extensionsSupported = CheckDeviceExtensionSupport(device);
+    bool swapChainValid = false;
+    if(extensionsSupported)
+    {
+        SwapChainDetails swapChainDetails = GetSwapChainDetails(device);
+        swapChainValid = !swapChainDetails.presentationModes.empty() && !swapChainDetails.formats.empty();
+    }
   
-    return indices.IsValid() && extensionsSupported;
+    return indices.IsValid() && extensionsSupported && swapChainValid;
 }
 
 bool VulkanRenderer::CheckValidationLayerSupport() const
@@ -343,6 +349,35 @@ QueueFamilyIndices& VulkanRenderer::GetQueueFamilies(const VkPhysicalDevice& dev
     
 }
 
+SwapChainDetails VulkanRenderer::GetSwapChainDetails(const VkPhysicalDevice& device) const
+{
+    SwapChainDetails swapChainDetails;
+    //--Capabilities--
+    //Get the surface capabilities for the given surface on the given physical device
+    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device,surface,&swapChainDetails.surfaceCapabilities);
+
+    //--Formats --
+    uint32_t formatCount = 0;
+    vkGetPhysicalDeviceSurfaceFormatsKHR(device,surface,&formatCount,nullptr);
+
+    if(formatCount)
+    {
+        swapChainDetails.formats.resize(formatCount);
+        vkGetPhysicalDeviceSurfaceFormatsKHR(device,surface,&formatCount,swapChainDetails.formats.data());
+    }
+
+    // -- Presentation modes --
+    uint32_t presentationCount = 0;
+    vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface,&presentationCount, nullptr);
+
+    if(presentationCount)
+    {
+        swapChainDetails.presentationModes.resize(presentationCount);
+        vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface,&presentationCount, swapChainDetails.presentationModes.data());
+    }
+    
+    return swapChainDetails;
+}
 
 
 void VulkanRenderer::Cleanup() const 

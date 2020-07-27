@@ -5,6 +5,8 @@
 #include <stdexcept>
 #include <vector>
 
+#include "Utilities.h"
+
 
 struct QueueFamilyIndices;
 
@@ -53,6 +55,7 @@ private:
 
     //-- Getter Functions
     QueueFamilyIndices& GetQueueFamilies(const VkPhysicalDevice& device) const;
+    SwapChainDetails GetSwapChainDetails(const VkPhysicalDevice& device) const;
 
     //- Destroy functions
     void Cleanup() const;
