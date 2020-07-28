@@ -25,6 +25,12 @@ struct SwapChainDetails
     std::vector<VkPresentModeKHR> presentationModes; //How images should be presented to screen
 };
 
+struct SwapchainImage
+{
+    VkImage image;
+    VkImageView imageView;
+};
+
 static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
     VkDebugUtilsMessageTypeFlagsEXT messageType,

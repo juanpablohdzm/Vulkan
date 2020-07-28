@@ -36,6 +36,7 @@ private:
     VkQueue presentationQueue;
     VkSurfaceKHR surface;
     VkSwapchainKHR swapchainKhr;
+    std::vector<SwapchainImage> swapchainImages;
 
     // - Utility
     VkFormat swapChainImageFormat;
@@ -70,6 +71,9 @@ private:
     std::optional<VkSurfaceFormatKHR> ChooseBestSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& formats) const;
     VkPresentModeKHR ChooseBestPresentationMode(const std::vector<VkPresentModeKHR>& presentationModes) const;
     VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& surfaceCapabilities) const;
+
+    //--Create functions
+    VkImageView CreateImageView(VkImage image, VkFormat format,VkImageAspectFlags aspectFlags) const;
 
     //- Destroy functions
     void Cleanup() const;
