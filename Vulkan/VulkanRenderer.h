@@ -1,5 +1,6 @@
 ﻿#pragma once
 #define GLFW_INCLUDE_VULKAN
+#include <optional>
 #include <GLFW/glfw3.h>
 
 #include <stdexcept>
@@ -24,6 +25,7 @@ private:
     GLFWwindow* window;
 
     //Vulkan components
+    // - Main
     VkInstance instance;
     struct 
     {
@@ -33,6 +35,12 @@ private:
     VkQueue graphicsQueue;
     VkQueue presentationQueue;
     VkSurfaceKHR surface;
+    VkSwapchainKHR swapchainKhr;
+
+    // - Utility
+    VkFormat swapChainImageFormat;
+    VkExtent2D swapChainExtent;
+    
     
 
     //Vulkan functions
@@ -40,6 +48,7 @@ private:
     void CreateInstance();
     void CreateLogicalDevice();
     void CreateSurface();
+    void CreateSwapChain();
 
     
     //- Get Functions
@@ -56,6 +65,11 @@ private:
     //-- Getter Functions
     QueueFamilyIndices& GetQueueFamilies(const VkPhysicalDevice& device) const;
     SwapChainDetails GetSwapChainDetails(const VkPhysicalDevice& device) const;
+
+    //--Choose functions
+    std::optional<VkSurfaceFormatKHR> ChooseBestSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& formats) const;
+    VkPresentModeKHR ChooseBestPresentationMode(const std::vector<VkPresentModeKHR>& presentationModes) const;
+    VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& surfaceCapabilities) const;
 
     //- Destroy functions
     void Cleanup() const;
