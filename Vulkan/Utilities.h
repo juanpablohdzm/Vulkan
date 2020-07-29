@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include <iostream>
 #include <vector>
+#include <fstream>
 
 const std::vector<const char*> deviceExtensions ={
     VK_KHR_SWAPCHAIN_EXTENSION_NAME
@@ -40,4 +41,29 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
     std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
 
     return VK_FALSE;
+}
+
+static std::vector<char> ReadFile(const std::string& filename)
+{
+    //Open stream from given file
+    // std::ios::binary tells stream to read file as binary
+    // std::ios::ate tells stream to start reading from end of file
+    std::ifstream file(filename,std::ios::binary | std::ios::ate); //ate = at end
+
+    if(!file.is_open())
+        throw std::runtime_error("Failed to open a file!");
+
+    //Get current read position and use to resize file buffer
+    size_t fileSize = static_cast<size_t>(file.tellg());
+    std::vector<char> fileBuffer(fileSize);
+
+    //Move read position to start of the file
+    file.seekg(0);
+
+    //Read the file data into the buffer
+    file.read(fileBuffer.data(),fileSize);
+
+    file.close();
+
+    return fileBuffer;
 }

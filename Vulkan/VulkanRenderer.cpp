@@ -28,6 +28,7 @@ int32_t VulkanRenderer::Init(GLFWwindow* newWindow)
         GetPhysicalDevice();
         CreateLogicalDevice();
         CreateSwapChain();
+        CreateGraphicsPipeline();
     }
     catch (const std::runtime_error& e)
     {
@@ -273,6 +274,84 @@ void VulkanRenderer::CreateSwapChain()
         swapchainImages.push_back(swapchainImage);
     }
     
+}
+
+void VulkanRenderer::CreateGraphicsPipeline()
+{
+    auto vertexShaderCode = ReadFile("Shaders/vert.spv");   
+    auto fragmentShaderCode = ReadFile("Shaders/frag.spv");
+
+    //Build shader modules to link to graphics pipeline
+    VkShaderModule vertexShaderModule = CreateShaderModule(vertexShaderCode);
+    VkShaderModule fragmentShaderModule = CreateShaderModule(fragmentShaderCode);
+
+    // --Shader stage creation information
+    // Vertex stage creation information
+    VkPipelineShaderStageCreateInfo vertexShaderCreateInfo{};
+    vertexShaderCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    vertexShaderCreateInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
+    vertexShaderCreateInfo.module = vertexShaderModule;
+    vertexShaderCreateInfo.pName = "main";
+
+    // Fragment stage creation information
+    VkPipelineShaderStageCreateInfo fragmentShaderCreateInfo{};
+    fragmentShaderCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    fragmentShaderCreateInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+    fragmentShaderCreateInfo.module = fragmentShaderModule;
+    fragmentShaderCreateInfo.pName = "main";
+
+    VkPipelineShaderStageCreateInfo shaderStages[] = {vertexShaderCreateInfo, fragmentShaderCreateInfo};
+    //--Vertex input--
+    VkPipelineVertexInputStateCreateInfo vertexInputStateCreateInfo{};
+    vertexInputStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+    vertexInputStateCreateInfo.vertexBindingDescriptionCount = 0;
+    vertexInputStateCreateInfo.pVertexBindingDescriptions = nullptr; //List of vertex binding descriptions (data spacing/ stride information)
+    vertexInputStateCreateInfo.vertexAttributeDescriptionCount = 0;
+    vertexInputStateCreateInfo.pVertexAttributeDescriptions = nullptr; //List of vertex attribute descriptions (data format and where to bind to/from)
+
+    //--Input assembly--
+    VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
+    inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+    inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;//glTriangles or glLines
+    inputAssembly.primitiveRestartEnable = VK_FALSE; //Allow overriding of strip topology to start new primitives
+
+    //--Viewport & scissor --
+    //Create  a viewport info struct
+    VkViewport viewport{};
+    viewport.x = 0.0f;
+    viewport.y = 0.0f;
+    viewport.width = static_cast<float>(swapChainExtent.width);
+    viewport.height = static_cast<float>(swapChainExtent.height);
+    viewport.minDepth = 0.0f;
+    viewport.maxDepth = 1.0f;
+
+    //Create a scissor info struct
+    VkRect2D scissor {};
+    scissor.offset ={0,0}; //Offset to use region from 
+    scissor.extent = swapChainExtent; //Extent to describe region to use, starting at offset
+
+    VkPipelineViewportStateCreateInfo viewportStateCreateInfo{};
+    viewportStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+    viewportStateCreateInfo.viewportCount = 1;
+    viewportStateCreateInfo.pViewports = &viewport;
+    viewportStateCreateInfo.scissorCount = 1;
+    viewportStateCreateInfo.pScissors = &scissor;
+
+    // //--Dynamic state-- alterable things in pipeline
+    // std::vector<VkDynamicState> dynamicStatesEnables;
+    // dynamicStatesEnables.push_back(VK_DYNAMIC_STATE_VIEWPORT); //Dynamic Viewport : Can resize in command buffer width vkCmdSetViewport(commandbuffer, 0, 1, &viewport)
+    // dynamicStatesEnables.push_back(VK_DYNAMIC_STATE_SCISSOR); //Dynamic Scissor : Can resize in command buffer with vkCmdSetScissor(commandbuffer, 0,1, &scissor)
+    //
+    // //Dynamic state creation info
+    // VkPipelineDynamicStateCreateInfo dynamicStateCreateInfo{};
+    // dynamicStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+    // dynamicStateCreateInfo.dynamicStateCount = static_cast<uint32_t>(dynamicStatesEnables.size());
+    // dynamicStateCreateInfo.pDynamicStates = dynamicStatesEnables.data();
+
+    //Destroy modules
+    vkDestroyShaderModule(mainDevice.logicalDevice,vertexShaderModule,nullptr);
+    vkDestroyShaderModule(mainDevice.logicalDevice,fragmentShaderModule,nullptr);
+
 }
 
 bool VulkanRenderer::CheckInstanceExtensionSupport(const std::vector<const char*>& checkExtensions) const
@@ -545,6 +624,21 @@ VkImageView VulkanRenderer::CreateImageView(VkImage image, VkFormat format, VkIm
     throw std::runtime_error("Failed to create an image view");
 
     return imageView;
+}
+
+VkShaderModule VulkanRenderer::CreateShaderModule(const std::vector<char>& code)
+{
+    VkShaderModuleCreateInfo shaderModuleCreateInfo{};
+    shaderModuleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+    shaderModuleCreateInfo.codeSize = code.size();
+    shaderModuleCreateInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
+
+    VkShaderModule shaderModule;
+    VkResult result = vkCreateShaderModule(mainDevice.logicalDevice,&shaderModuleCreateInfo,nullptr,&shaderModule);
+    if(result != VK_SUCCESS)
+        throw std::runtime_error("Error creating shader module");
+
+    return shaderModule;
 }
 
 

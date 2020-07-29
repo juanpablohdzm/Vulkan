@@ -50,6 +50,7 @@ private:
     void CreateLogicalDevice();
     void CreateSurface();
     void CreateSwapChain();
+    void CreateGraphicsPipeline();
 
     
     //- Get Functions
@@ -74,6 +75,8 @@ private:
 
     //--Create functions
     VkImageView CreateImageView(VkImage image, VkFormat format,VkImageAspectFlags aspectFlags) const;
+    VkShaderModule CreateShaderModule(const std::vector<char>& code);
+    
 
     //- Destroy functions
     void Cleanup() const;
