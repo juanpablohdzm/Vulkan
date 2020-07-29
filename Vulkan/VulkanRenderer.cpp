@@ -348,6 +348,44 @@ void VulkanRenderer::CreateGraphicsPipeline()
     // dynamicStateCreateInfo.dynamicStateCount = static_cast<uint32_t>(dynamicStatesEnables.size());
     // dynamicStateCreateInfo.pDynamicStates = dynamicStatesEnables.data();
 
+    //--Rasterizer--
+    VkPipelineRasterizationStateCreateInfo rasterizationStateCreateInfo{};
+    rasterizationStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+    rasterizationStateCreateInfo.depthClampEnable = VK_FALSE; //Flatten everything beyond the far plane if needed enable in device features depth clamped
+    rasterizationStateCreateInfo.rasterizerDiscardEnable = VK_FALSE; //Discard fragment shader data
+    rasterizationStateCreateInfo.polygonMode = VK_POLYGON_MODE_FILL; // How to handle filling points between vertices
+    rasterizationStateCreateInfo.lineWidth = 1.0f; //How thick line should be drawn, if needed any other gpu extension is required
+    rasterizationStateCreateInfo.cullMode = VK_CULL_MODE_BACK_BIT; //Dont draw the back face
+    rasterizationStateCreateInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
+    rasterizationStateCreateInfo.depthBiasEnable = VK_FALSE; //Whether to add depth bias to fragments
+
+    //--Multisampling --
+    VkPipelineMultisampleStateCreateInfo multisampleStateCreateInfo{};
+    multisampleStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+    multisampleStateCreateInfo.sampleShadingEnable = VK_FALSE;
+    multisampleStateCreateInfo.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+
+    // --Blending --
+    VkPipelineColorBlendAttachmentState colorState{};
+    colorState.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT; //Colors to apply blending to
+    colorState.blendEnable = VK_TRUE;    //Enable blending
+
+    //Blending uses equation: (srcColorBlendFactor * new color) colorBlendOp (dstColorBlendFactor * old color)
+    colorState.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+    colorState.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+    colorState.colorBlendOp = VK_BLEND_OP_ADD;
+
+    colorState.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+    colorState.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+    colorState.alphaBlendOp = VK_BLEND_OP_ADD;
+    
+    VkPipelineColorBlendStateCreateInfo  colorBlendingCreateInfo{};
+    colorBlendingCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+    colorBlendingCreateInfo.logicOpEnable = VK_FALSE;
+    colorBlendingCreateInfo.attachmentCount = 1;
+    colorBlendingCreateInfo.pAttachments = &colorState;
+
+    
     //Destroy modules
     vkDestroyShaderModule(mainDevice.logicalDevice,vertexShaderModule,nullptr);
     vkDestroyShaderModule(mainDevice.logicalDevice,fragmentShaderModule,nullptr);
