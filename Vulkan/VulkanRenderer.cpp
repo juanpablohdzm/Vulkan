@@ -507,6 +507,58 @@ void VulkanRenderer::CreateGraphicsPipeline()
 
 }
 
+void VulkanRenderer::CreateFramebuffers()
+{
+    //Resize framebuffer count to equal swap chain image count
+    swapchainFramebuffers.resize(swapchainImages.size());
+
+    for (size_t i = 0; i < swapchainFramebuffers.size(); ++i)
+    {
+        std::array<VkImageView, 1> attachments = {
+            swapchainImages[i].imageView
+        };
+        
+        VkFramebufferCreateInfo framebufferCreateInfo{};
+        framebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+        framebufferCreateInfo.renderPass = renderPass;    //Render pass layout the framebuffer will be used with
+        framebufferCreateInfo.attachmentCount = static_cast<uint32_t>(attachments.size()); 
+        framebufferCreateInfo.pAttachments = attachments.data(); //list of attachments (1:1 with render pass)
+        framebufferCreateInfo.width = swapChainExtent.width; //Framebuffer width
+        framebufferCreateInfo.height = swapChainExtent.height; //Framebuffer height
+        framebufferCreateInfo.layers = 1; //Framebuffer layers
+
+        VkResult result  = vkCreateFramebuffer(mainDevice.logicalDevice,&framebufferCreateInfo,nullptr, &swapchainFramebuffers[i]);
+        if(result != VK_SUCCESS)
+            throw std::runtime_error("Failed to create a framebuffer");
+    }
+}
+
+void VulkanRenderer::CreateCommandPool()
+{
+    //Get indices of queue families from device
+    QueueFamilyIndices queueFamilyIndices = GetQueueFamilies(mainDevice.physicalDevice);
+    
+    VkCommandPoolCreateInfo poolCreateInfo{};
+    poolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    poolCreateInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily; //Queue family type that buffers from this command pool will use
+
+    //Create a graphics family command pool
+    VkResult result = vkCreateCommandPool(mainDevice.logicalDevice,&poolCreateInfo,nullptr,&graphicsCommandPool);
+    if(result != VK_SUCCESS)
+        throw std::runtime_error("Failed to create a Command pool");
+}
+
+void VulkanRenderer::CreateCommandBuffers()
+{
+    //Resize command buffer count to have one for each framebuffer
+    commandBuffers.resize(swapchainFramebuffers.size());
+
+    VkCommandBufferAllocateInfo cbAllocInfo{};
+    cbAllocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    cbAllocInfo.commandPool = graphicsCommandPool;
+    cbAllocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY; //Buffer you submit directly to queue. Cant be called to other buffer
+}
+
 bool VulkanRenderer::CheckInstanceExtensionSupport(const std::vector<const char*>& checkExtensions) const
 {
     //Need to get number of extension to create array of correct size to hold extensions
@@ -514,7 +566,6 @@ bool VulkanRenderer::CheckInstanceExtensionSupport(const std::vector<const char*
     vkEnumerateInstanceExtensionProperties(nullptr,&extensionCount,nullptr);
 
     //Create a list of vkExtensionProperties using count
-    //std::vector<VkExtensionProperties> extensions(extensionCount);
     std::vector<VkExtensionProperties> extensions(extensionCount);
     vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions.data());
 
@@ -797,6 +848,11 @@ VkShaderModule VulkanRenderer::CreateShaderModule(const std::vector<char>& code)
 
 void VulkanRenderer::Cleanup() const 
 {
+    vkDestroyCommandPool(mainDevice.logicalDevice,graphicsCommandPool,nullptr);
+    for (auto framebuffer : swapchainFramebuffers)
+    {
+        vkDestroyFramebuffer(mainDevice.logicalDevice, framebuffer,nullptr);
+    }
     vkDestroyPipeline(mainDevice.logicalDevice, graphicsPipeline, nullptr);
     vkDestroyPipelineLayout(mainDevice.logicalDevice,pipelineLayout,nullptr);
     vkDestroyRenderPass(mainDevice.logicalDevice,renderPass,nullptr);
