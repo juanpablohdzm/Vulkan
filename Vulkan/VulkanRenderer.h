@@ -66,6 +66,9 @@ private:
     void CreateFramebuffers();
     void CreateCommandPool();
     void CreateCommandBuffers();
+
+    //- Record functions
+    void RecordFunctions();
     
     //- Get Functions
     void GetPhysicalDevice();

@@ -557,6 +557,62 @@ void VulkanRenderer::CreateCommandBuffers()
     cbAllocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     cbAllocInfo.commandPool = graphicsCommandPool;
     cbAllocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY; //Buffer you submit directly to queue. Cant be called to other buffer
+    cbAllocInfo.commandBufferCount = static_cast<uint32_t>(commandBuffers.size());
+
+    //Allocate command buffers and place handles in array of buffers
+    VkResult result = vkAllocateCommandBuffers(mainDevice.logicalDevice,&cbAllocInfo,commandBuffers.data());
+    if(result != VK_SUCCESS)
+    {
+      throw std::runtime_error("Failed to allocate Command buffers");   
+    }
+}
+
+void VulkanRenderer::RecordFunctions()
+{
+    //Information about how to begin each command buffer
+    VkCommandBufferBeginInfo bufferBeginInfo{};
+    bufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    bufferBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT; //Buffer can be resubmitted when it has already been submitted and is awaiting execution
+
+    //Information about how to begin a render pass(only needed for graphical applications)
+    VkRenderPassBeginInfo renderPassBeginInfo{};
+    renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    renderPassBeginInfo.renderPass = renderPass; // Render Pass to begin
+    renderPassBeginInfo.renderArea.offset = {0,0}; // Start point of render pass in pixels
+    renderPassBeginInfo.renderArea.extent = swapChainExtent; //Size of region to run render pass on (starting at offset)
+    VkClearValue clearValues[] ={
+    {0.6f,0.65f,0.4f,1.0f}
+    };
+    renderPassBeginInfo.pClearValues = clearValues; //List of clear values (TODO: Depth Attachment Clear value)
+    renderPassBeginInfo.clearValueCount = 1;
+    
+    for (size_t i = 0; i<commandBuffers.size(); i++)
+    {
+        renderPassBeginInfo.framebuffer = swapchainFramebuffers[i];
+        
+        //Start recording commands to command buffer!
+        VkResult result = vkBeginCommandBuffer(commandBuffers[i],&bufferBeginInfo);
+        if(result)
+        {
+            throw std::runtime_error("Failed to start recording a Command Buffer");
+        }
+
+        
+        vkCmdBeginRenderPass(commandBuffers[i],&renderPassBeginInfo,VK_SUBPASS_CONTENTS_INLINE);
+
+        //Bind pipeline to be used in render pass
+        vkCmdBindPipeline(commandBuffers[i],VK_PIPELINE_BIND_POINT_GRAPHICS,graphicsPipeline);
+
+        //Execute pipeline
+        vkCmdDraw(commandBuffers[i],3,1,0,0);
+        
+        vkCmdEndRenderPass(commandBuffers[i]);
+
+        //Stop recording to command buffer
+        result = vkEndCommandBuffer(commandBuffers[i]);
+        if(result)
+            throw std::runtime_error("Failed to stop recording a Command Buffer");
+    }
 }
 
 bool VulkanRenderer::CheckInstanceExtensionSupport(const std::vector<const char*>& checkExtensions) const
