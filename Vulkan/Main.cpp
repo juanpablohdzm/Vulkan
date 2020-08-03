@@ -39,6 +39,7 @@ int main()
 	while (!glfwWindowShouldClose(window))
 	{
 		glfwPollEvents();
+		vulkanRenderer.Draw();
 	}
 
 	//Destroy window and stop GLFW

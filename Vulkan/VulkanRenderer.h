@@ -18,11 +18,14 @@ public:
     VulkanRenderer();
 
     int32_t Init(GLFWwindow * newWindow);
+    void Draw();
 
 
     ~VulkanRenderer();
 private:
     GLFWwindow* window;
+
+    size_t currentFrame = 0;
 
     //Vulkan components
     // - Main
@@ -52,6 +55,11 @@ private:
     // - Utility
     VkFormat swapChainImageFormat;
     VkExtent2D swapChainExtent;
+
+    //- Synchronisation
+    std::vector<VkSemaphore> imageAvailable;
+    std::vector<VkSemaphore> renderFinished;
+    std::vector<VkFence> drawFences;
     
     
 
@@ -66,9 +74,10 @@ private:
     void CreateFramebuffers();
     void CreateCommandPool();
     void CreateCommandBuffers();
+    void CreateSynchronisation();
 
     //- Record functions
-    void RecordFunctions();
+    void RecordCommands();
     
     //- Get Functions
     void GetPhysicalDevice();
