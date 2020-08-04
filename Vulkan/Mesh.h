@@ -8,7 +8,7 @@ class Mesh
 {
 public:
     Mesh();
-    Mesh(const VkPhysicalDevice& newPhysicalDevice,const VkDevice& newDevice,const std::vector<Vertex>* vertices);
+    Mesh(const VkPhysicalDevice& newPhysicalDevice,const VkDevice& newDevice,VkQueue transferQueue, VkCommandPool transferCommandPool,const std::vector<Vertex>* vertices);
 
     void DestroyVertexBuffer();
     
@@ -26,6 +26,5 @@ private:
     VkPhysicalDevice physicalDevice;
     VkDevice device;
 
-    void CreateVertexBuffer(const std::vector<Vertex>* vertices);
-    uint32_t FindMemoryTypeIndex(uint32_t allowedTypes,VkMemoryPropertyFlags properties);
+    void CreateVertexBuffer(VkQueue transferQueue, VkCommandPool transferCommandPool,const std::vector<Vertex>* vertices);
 };
