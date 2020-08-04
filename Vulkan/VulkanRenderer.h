@@ -6,6 +6,8 @@
 #include <stdexcept>
 #include <vector>
 
+
+#include "Mesh.h"
 #include "Utilities.h"
 
 
@@ -26,6 +28,9 @@ private:
     GLFWwindow* window;
 
     size_t currentFrame = 0;
+
+    //Scene objects
+    Mesh firstMesh;
 
     //Vulkan components
     // - Main
@@ -105,7 +110,7 @@ private:
     
 
     //- Destroy functions
-    void Cleanup() const;
+    void Cleanup();
 
 
 
