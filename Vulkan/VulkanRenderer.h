@@ -30,7 +30,7 @@ private:
     size_t currentFrame = 0;
 
     //Scene objects
-    Mesh firstMesh;
+    std::vector<Mesh> meshList;
 
     //Vulkan components
     // - Main
