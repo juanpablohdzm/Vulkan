@@ -11,6 +11,7 @@
 #include "Utilities.h"
 
 
+
 struct QueueFamilyIndices;
 
 class VulkanRenderer
@@ -20,6 +21,7 @@ public:
     VulkanRenderer();
 
     int32_t Init(GLFWwindow * newWindow);
+    void UpdateModel(glm::mat4 newModel);
     void Draw();
 
 
@@ -31,6 +33,14 @@ private:
 
     //Scene objects
     std::vector<Mesh> meshList;
+
+    //Scene settings
+    struct MVP
+    {
+        glm::mat4 projection;
+        glm::mat4 view;
+        glm::mat4 model;
+    } mvp;
 
     //Vulkan components
     // - Main
@@ -49,6 +59,15 @@ private:
     std::vector<VkFramebuffer> swapchainFramebuffers;
     std::vector<VkCommandBuffer> commandBuffers;
 
+    //-Descriptors
+    VkDescriptorSetLayout descriptorSetLayout;
+
+    VkDescriptorPool descriptorPool;
+    std::vector<VkDescriptorSet> descriptorSets;
+
+    std::vector<VkBuffer> uniformBuffer;
+    std::vector<VkDeviceMemory> uniformBufferMemory;
+    
     //- Pipeline
     VkPipeline graphicsPipeline;
     VkPipelineLayout pipelineLayout;
@@ -75,12 +94,18 @@ private:
     void CreateSurface();
     void CreateSwapChain();
     void CreateRenderPass();
+    void CreateDescriptorSetLayout();
     void CreateGraphicsPipeline();
     void CreateFramebuffers();
     void CreateCommandPool();
     void CreateCommandBuffers();
     void CreateSynchronisation();
 
+    void CreateUniformBuffers();
+    void CreateDescriptorPool();
+    void CreateDescriptorSets();
+
+    void UpdateUniformBuffer(uint32_t imageIndex);
     //- Record functions
     void RecordCommands();
     

@@ -4,6 +4,8 @@
 #include <iostream>
 #include <stdexcept>
 #include <vector>
+#include <glm/ext/matrix_transform.hpp>
+
 
 #include "VulkanRenderer.h"
 
@@ -34,11 +36,28 @@ int main()
 	{
 		return EXIT_FAILURE;
 	}
+
+	float angle = 0.0f;
+	float dt = 0.0f;
+	float lastTime = 0.0f;
 	
 	//Loop until closed
 	while (!glfwWindowShouldClose(window))
 	{
 		glfwPollEvents();
+
+		float now = glfwGetTime();
+		dt = now - lastTime;
+		lastTime = now;
+		angle += 20.0f*dt;
+		if(angle >= 360.0f)
+			angle = 0.0f;
+
+
+		glm::mat4 model(1.0f);
+		model = glm::rotate(model,glm::radians(angle),glm::vec3(0.0f,0.0f,1.0f));
+
+		vulkanRenderer.UpdateModel(model);
 		vulkanRenderer.Draw();
 	}
 
