@@ -5,9 +5,9 @@
 #include <vector>
 #include "Utilities.h"
 
-struct UboModel
+struct Model
 {
-    glm::mat4 model;
+    glm::mat4 currentModel;
 };
 
 class Mesh
@@ -17,8 +17,8 @@ public:
     Mesh(const VkPhysicalDevice& newPhysicalDevice,const VkDevice& newDevice,VkQueue transferQueue,
         VkCommandPool transferCommandPool,const std::vector<Vertex>* vertices, const std::vector<uint32_t>* indices);
 
-    void SetModel(glm::mat4 model) {uboModel.model = model;}
-    glm::mat4 GetModel() const { return uboModel.model;} 
+    void SetModel(glm::mat4 _model) {model.currentModel = _model;}
+    glm::mat4 GetModel() const { return model.currentModel;} 
     
     void DestroyBuffers();
     
@@ -32,7 +32,7 @@ public:
 
 
 private:
-    UboModel uboModel;
+    Model model;
     
     int vertexCount;
     VkBuffer vertexBuffer;

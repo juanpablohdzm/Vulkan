@@ -1,6 +1,6 @@
 ﻿#include "Mesh.h"
 
-Mesh::Mesh(): uboModel(), vertexCount(0), vertexBuffer(nullptr),
+Mesh::Mesh(): model(), vertexCount(0), vertexBuffer(nullptr),
               vertexBufferMemory(nullptr), indexCount(0),
               indexBuffer(nullptr), indexBufferMemory(nullptr),
               physicalDevice(nullptr), device(nullptr)
@@ -16,7 +16,7 @@ Mesh::Mesh(const VkPhysicalDevice& newPhysicalDevice, const VkDevice& newDevice,
 {
     CreateVertexBuffer(transferQueue,transferCommandPool,vertices);
     CreateIndexBuffer(transferQueue,transferCommandPool,indices);
-    uboModel.model = glm::mat4(1.0f);
+    model.currentModel = glm::mat4(1.0f);
 }
 
 
