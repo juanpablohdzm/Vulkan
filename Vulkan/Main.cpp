@@ -1,6 +1,6 @@
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
-
 #include <iostream>
 #include <stdexcept>
 #include <vector>
@@ -57,10 +57,10 @@ int main()
 		glm::mat4 model(1.0f);
 		glm::mat4 model2(1.0f);
 		model = glm::scale(model,glm::vec3(0.5,0.5,0.5));
-		model = glm::translate(model,glm::vec3(1.0f,0.0f,0.0f));
+		model = glm::translate(model,glm::vec3(0.0f,0.0f,0.5f));
 		model = glm::rotate(model,glm::radians(angle),glm::vec3(0.0f,0.0f,1.0f));
 		model2 = glm::scale(model2,glm::vec3(0.5,0.5,0.5));
-		model2 = glm::translate(model2,glm::vec3(-1.0f,0.0f,0.0f));
+		model2 = glm::translate(model2,glm::vec3(0.0f,0.0f,0.0f));
 		model2 = glm::rotate(model2,glm::radians(-angle),glm::vec3(0.0f,0.0f,1.0f));
 
 		vulkanRenderer.UpdateModel(0,model);
