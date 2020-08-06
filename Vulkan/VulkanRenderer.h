@@ -21,7 +21,7 @@ public:
     VulkanRenderer();
 
     int32_t Init(GLFWwindow * newWindow);
-    void UpdateModel(glm::mat4 newModel);
+    void UpdateModel(int modelId,glm::mat4 newModel);
     void Draw();
 
 
@@ -35,12 +35,11 @@ private:
     std::vector<Mesh> meshList;
 
     //Scene settings
-    struct MVP
+    struct UboViewProjection
     {
         glm::mat4 projection;
         glm::mat4 view;
-        glm::mat4 model;
-    } mvp;
+    } uboViewProjection;
 
     //Vulkan components
     // - Main
@@ -65,8 +64,11 @@ private:
     VkDescriptorPool descriptorPool;
     std::vector<VkDescriptorSet> descriptorSets;
 
-    std::vector<VkBuffer> uniformBuffer;
-    std::vector<VkDeviceMemory> uniformBufferMemory;
+    std::vector<VkBuffer> vpUniformBuffer;
+    std::vector<VkDeviceMemory> vpUniformBufferMemory;
+
+    std::vector<VkBuffer> modelUniformBuffer;
+    std::vector<VkDeviceMemory> modelUniformBufferMemory;
     
     //- Pipeline
     VkPipeline graphicsPipeline;
@@ -79,6 +81,10 @@ private:
     // - Utility
     VkFormat swapChainImageFormat;
     VkExtent2D swapChainExtent;
+
+    VkDeviceSize minUniformBufferOffset;
+    size_t modelUniformAlignment;
+    UboModel* modelTransferSpace;
 
     //- Synchronisation
     std::vector<VkSemaphore> imageAvailable;
@@ -111,6 +117,9 @@ private:
     
     //- Get Functions
     void GetPhysicalDevice();
+
+    // - Allocate Functions
+    void AllocateDynamicBufferTransferSpace();
 
     //-Support functions
     // -- Checker Functions
