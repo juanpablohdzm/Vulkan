@@ -15,7 +15,7 @@ class Mesh
 public:
     Mesh();
     Mesh(const VkPhysicalDevice& newPhysicalDevice,const VkDevice& newDevice,VkQueue transferQueue,
-        VkCommandPool transferCommandPool,const std::vector<Vertex>* vertices, const std::vector<uint32_t>* indices);
+        VkCommandPool transferCommandPool,const std::vector<Vertex>* vertices, const std::vector<uint32_t>* indices, int newTexID);
 
     void SetModel(glm::mat4 _model) {model.currentModel = _model;}
     glm::mat4 GetModel() const { return model.currentModel;} 
@@ -28,12 +28,18 @@ public:
     int GetIndicesCount() const{return indexCount;}
     VkBuffer GetIndexBuffer() const{return indexBuffer;}
 
+    int GetTexId() const { return texId;}
+    void SetTexId(int texId) { this->texId = texId;}
+
     ~Mesh();
 
 
 private:
     Model model;
-    
+
+    int texId;
+
+private:
     int vertexCount;
     VkBuffer vertexBuffer;
     VkDeviceMemory vertexBufferMemory;

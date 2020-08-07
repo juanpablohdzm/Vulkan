@@ -15,6 +15,7 @@ struct Vertex
 {
     glm::vec3 pos; //Vertex position
     glm::vec3 col;
+    glm::vec2 tex; //UV
 };
 
 //Indices (locations) of Queue Families (if they exist at all)

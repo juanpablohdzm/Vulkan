@@ -8,11 +8,12 @@ Mesh::Mesh(): model(), vertexCount(0), vertexBuffer(nullptr),
 }
 
 Mesh::Mesh(const VkPhysicalDevice& newPhysicalDevice, const VkDevice& newDevice,VkQueue transferQueue,
-           VkCommandPool transferCommandPool, const std::vector<Vertex>* vertices, const std::vector<uint32_t>* indices):
+           VkCommandPool transferCommandPool, const std::vector<Vertex>* vertices, const std::vector<uint32_t>* indices, int newTexID):
     vertexCount(vertices->size()),
     physicalDevice(newPhysicalDevice),
     device(newDevice),
-    indexCount(indices->size())
+    indexCount(indices->size()),
+    texId(newTexID)
 {
     CreateVertexBuffer(transferQueue,transferCommandPool,vertices);
     CreateIndexBuffer(transferQueue,transferCommandPool,indices);

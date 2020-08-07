@@ -65,10 +65,13 @@ private:
     
     //-Descriptors
     VkDescriptorSetLayout descriptorSetLayout;
+    VkDescriptorSetLayout samplerSetLayout;
     VkPushConstantRange pushConstantRange;
     
     VkDescriptorPool descriptorPool;
+    VkDescriptorPool samplerDescriptorPool;
     std::vector<VkDescriptorSet> descriptorSets;
+    std::vector<VkDescriptorSet> samplerDescriptorSets;
 
     std::vector<VkBuffer> vpUniformBuffer;
     std::vector<VkDeviceMemory> vpUniformBufferMemory;
@@ -77,8 +80,10 @@ private:
     //std::vector<VkDeviceMemory> modelUniformBufferMemory;
     
     //-Assets
+    VkSampler textureSampler;
     std::vector<VkImage> textureImages;
     std::vector<VkDeviceMemory> textureImageMemory;
+    std::vector<VkImageView> textureImageViews;
     
     //- Pipeline
     VkPipeline graphicsPipeline;
@@ -118,6 +123,8 @@ private:
     void CreateCommandPool();
     void CreateCommandBuffers();
     void CreateSynchronisation();
+    void CreateTextureSampler();    
+    
     void CreateUniformBuffers();
     void CreateDescriptorPool();
     void CreateDescriptorSets();
@@ -156,8 +163,9 @@ private:
     VkImageView CreateImageView(VkImage image, VkFormat format,VkImageAspectFlags aspectFlags) const;
     VkShaderModule CreateShaderModule(const std::vector<char>& code);
 
+    int CreateTextureImage(const std::string& fileName);
     int CreateTexture(const std::string& fileName);
-    
+    int CreateTextureDescriptor(VkImageView textureImage);
     // - Loader functions
     stbi_uc*  LoadTextureFile(const std::string& fileName, int* width, int* height, VkDeviceSize* imageSize) const;
     

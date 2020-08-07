@@ -3,8 +3,9 @@
 
 layout(location = 0) in vec3 pos;
 layout(location = 1) in vec3 col;
+layout(location = 2) in vec2 tex;
 
-layout(binding = 0) uniform  UboViewProjection
+layout(set = 0,binding = 0) uniform  UboViewProjection
 {
     mat4 projection;
     mat4 view; 
@@ -12,10 +13,10 @@ layout(binding = 0) uniform  UboViewProjection
 
 
 //Not in use, left for reference
-layout(binding = 1) uniform  UboModel
-{
-    mat4 model;
-} uboModel;
+//layout(binding = 1) uniform  UboModel
+//{
+//    mat4 model;
+//} uboModel;
 
 layout(push_constant) uniform PushModel
 {
@@ -25,9 +26,11 @@ layout(push_constant) uniform PushModel
 
 
 layout(location = 0) out vec3 fragCol;
+layout(location = 1) out vec2 fragTex;
 
 void main()
 {
     fragCol = col;
+    fragTex = tex;
     gl_Position =uboViewProjection.projection*uboViewProjection.view*pushModel.model*vec4(pos,1.0);
 }
