@@ -8,6 +8,7 @@
 
 
 #include "Mesh.h"
+#include "stb_image.h"
 #include "Utilities.h"
 
 
@@ -75,6 +76,9 @@ private:
     //std::vector<VkBuffer> modelUniformBuffer;
     //std::vector<VkDeviceMemory> modelUniformBufferMemory;
     
+    //-Assets
+    std::vector<VkImage> textureImages;
+    std::vector<VkDeviceMemory> textureImageMemory;
     
     //- Pipeline
     VkPipeline graphicsPipeline;
@@ -151,8 +155,12 @@ private:
                         VkImageUsageFlags useFlags, VkMemoryPropertyFlags propFlags, VkDeviceMemory* imageMemory);
     VkImageView CreateImageView(VkImage image, VkFormat format,VkImageAspectFlags aspectFlags) const;
     VkShaderModule CreateShaderModule(const std::vector<char>& code);
-    
 
+    int CreateTexture(const std::string& fileName);
+    
+    // - Loader functions
+    stbi_uc*  LoadTextureFile(const std::string& fileName, int* width, int* height, VkDeviceSize* imageSize) const;
+    
     //- Destroy functions
     void Cleanup();
 

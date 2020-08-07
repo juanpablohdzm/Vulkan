@@ -6,6 +6,7 @@
 #include <glm/glm.hpp>
 
 #include "Utilities.h"
+#include "stb_image.h" 
 #include <iostream>
 #include <optional>
 #include <vector>
@@ -44,7 +45,8 @@ int32_t VulkanRenderer::Init(GLFWwindow* newWindow)
         CreateFramebuffers();
         CreateCommandPool();
 
-
+        int firstTexture  = CreateTexture("Background.png");
+        
         uboViewProjection.projection = glm::perspective(glm::radians(45.0f),(float) swapChainExtent.width/(float)swapChainExtent.height,0.1f,100.0f);
         uboViewProjection.view = glm::lookAt(glm::vec3(0.0f,0.0f,2.0f),glm::vec3(0.0f,0.0f,0.0f),glm::vec3(0.0f,1.0f,0.0f));
 
@@ -1360,6 +1362,75 @@ VkShaderModule VulkanRenderer::CreateShaderModule(const std::vector<char>& code)
 }
 
 
+stbi_uc* VulkanRenderer::LoadTextureFile(const std::string& fileName, int* width, int* height, VkDeviceSize* imageSize) const
+{
+    //Number of channels image uses
+    int channels;
+
+    //Load pixel data for image
+    std::string fileLoc = "Textures/"+fileName;
+    stbi_uc* image = stbi_load(fileLoc.c_str(),width,height,&channels,STBI_rgb_alpha);
+
+    if(!image)
+        throw std::runtime_error("Failed to load a texture file "+fileName);
+
+    *imageSize = *width* *height *4; //4 is all the channels
+
+    return image;
+}
+
+int VulkanRenderer::CreateTexture(const std::string& fileName)
+{
+    //Load image file
+    int width, height;
+    VkDeviceSize imageSize;
+    stbi_uc* imageData = LoadTextureFile(fileName,&width,&height,&imageSize);
+
+    //Create staging buffer to hold loaded data, ready to copy to device
+    VkBuffer imageStagingBuffer;
+    VkDeviceMemory imageStagingBufferMemory;
+    CreateBuffer(mainDevice.physicalDevice,mainDevice.logicalDevice,imageSize,VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT| VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+        &imageStagingBuffer,&imageStagingBufferMemory);
+
+    //Copy image data to staging buffer
+    void* data;
+    vkMapMemory(mainDevice.logicalDevice,imageStagingBufferMemory,0,imageSize,0,&data);
+    memcpy(data,imageData,static_cast<size_t>(imageSize));
+    vkUnmapMemory(mainDevice.logicalDevice,imageStagingBufferMemory);
+
+    //Free original image data
+    stbi_image_free(imageData);
+
+    //Create image to hold final texture
+    VkImage texImage;
+    VkDeviceMemory texImageMemory;
+
+    texImage = CreateImage(width,height,VK_FORMAT_R8G8B8A8_UNORM,VK_IMAGE_TILING_OPTIMAL,
+        VK_IMAGE_USAGE_TRANSFER_DST_BIT |VK_IMAGE_USAGE_SAMPLED_BIT,
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &texImageMemory);
+    
+    //Copy data to image
+
+    TransitionImageLayout(mainDevice.logicalDevice,graphicsQueue,graphicsCommandPool,texImage,
+        VK_IMAGE_LAYOUT_UNDEFINED,VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    
+    CopyImageBuffer(mainDevice.logicalDevice,graphicsQueue,graphicsCommandPool,imageStagingBuffer,texImage,width,height);
+
+    TransitionImageLayout(mainDevice.logicalDevice,graphicsQueue,graphicsCommandPool,texImage,
+        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+    //Add texture data to vector for reference
+    textureImages.push_back(texImage);
+    textureImageMemory.push_back(texImageMemory);
+
+    //Destroy staging buffers
+    vkDestroyBuffer(mainDevice.logicalDevice,imageStagingBuffer,nullptr);
+    vkFreeMemory(mainDevice.logicalDevice, imageStagingBufferMemory,nullptr);
+
+    return textureImages.size()-1;
+}
+
 void VulkanRenderer::Cleanup() 
 {
     
@@ -1367,6 +1438,12 @@ void VulkanRenderer::Cleanup()
 
     //_aligned_free(modelTransferSpace);
 
+    for (size_t i = 0; i < textureImages.size(); ++i)
+    {
+        vkDestroyImage(mainDevice.logicalDevice, textureImages[i],nullptr);
+        vkFreeMemory(mainDevice.logicalDevice,textureImageMemory[i],nullptr);
+    }
+    
     vkDestroyImageView(mainDevice.logicalDevice, depthBufferImageView,nullptr);
     vkDestroyImage(mainDevice.logicalDevice,depthBufferImage,nullptr);
     vkFreeMemory(mainDevice.logicalDevice,depthBufferImageMemory,nullptr);
