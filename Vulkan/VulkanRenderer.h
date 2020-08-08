@@ -8,6 +8,7 @@
 
 
 #include "Mesh.h"
+#include "MeshModel.h"
 #include "stb_image.h"
 #include "Utilities.h"
 
@@ -25,6 +26,7 @@ public:
     void UpdateModel(int modelId,glm::mat4 newModel);
     void Draw();
 
+    void CreateMeshModel(std::string modelFile);
 
     ~VulkanRenderer();
 private:
@@ -80,6 +82,9 @@ private:
     //std::vector<VkDeviceMemory> modelUniformBufferMemory;
     
     //-Assets
+
+    std::vector<MeshModel> modelList;
+    
     VkSampler textureSampler;
     std::vector<VkImage> textureImages;
     std::vector<VkDeviceMemory> textureImageMemory;
@@ -166,6 +171,8 @@ private:
     int CreateTextureImage(const std::string& fileName);
     int CreateTexture(const std::string& fileName);
     int CreateTextureDescriptor(VkImageView textureImage);
+
+
     // - Loader functions
     stbi_uc*  LoadTextureFile(const std::string& fileName, int* width, int* height, VkDeviceSize* imageSize) const;
     

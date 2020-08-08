@@ -41,6 +41,9 @@ int main()
 	float angle = 0.0f;
 	float dt = 0.0f;
 	float lastTime = 0.0f;
+
+	vulkanRenderer.CreateMeshModel("Models/Cat.obj");
+	
 	
 	//Loop until closed
 	while (!glfwWindowShouldClose(window))
@@ -54,18 +57,13 @@ int main()
 		if(angle >= 360.0f)
 			angle = 0.0f;
 
-
 		glm::mat4 model(1.0f);
-		glm::mat4 model2(1.0f);
-		model = glm::scale(model,glm::vec3(0.5,0.5,0.5));
-		model = glm::translate(model,glm::vec3(0.0f,0.0f,0.5f));
+		model = glm::scale(model,glm::vec3(0.3f,0.3f,0.3f));
+		model = glm::rotate(model,glm::radians(-90.0f),glm::vec3(1.0f,0.0f,0.0f));
+		model = glm::translate(model,glm::vec3(0.0f,0.0f,1.0f));
 		model = glm::rotate(model,glm::radians(angle),glm::vec3(0.0f,0.0f,1.0f));
-		model2 = glm::scale(model2,glm::vec3(0.5,0.5,0.5));
-		model2 = glm::translate(model2,glm::vec3(0.0f,0.0f,0.0f));
-		model2 = glm::rotate(model2,glm::radians(-angle),glm::vec3(0.0f,0.0f,1.0f));
 
 		vulkanRenderer.UpdateModel(0,model);
-		vulkanRenderer.UpdateModel(1,model2);
 		vulkanRenderer.Draw();
 	}
 
